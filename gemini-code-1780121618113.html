@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Love Letter For You</title>
+    
+    <!-- Fonts for both themes -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cedarville+Cursive&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            /* Pink Theme Colors */
+            --pink-bg: #fdf5f6;
+            --pink-text: #5a464c;
+            --accent-pink: #e8b4b8;
+            
+            /* Vintage Book Colors */
+            --vintage-dark: #2a2a2a;
+            --photo-border: #4a545c;
+            --paper-bg: #d9cec1;
+            --purple-tint: #b8a9b8;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            font-family: 'Playfair Display', serif;
+            color: var(--pink-text);
+            /* Soft pink gradient background for the whole experience */
+            background: linear-gradient(135deg, #fdf5f6 0%, #fbdada 100%);
+        }
+
+        /* --- SMOOTH FALLING FLOWERS ANIMATION --- */
+        #flower-container {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 1; overflow: hidden;
+        }
+        .flower {
+            position: absolute; top: -10%;
+            font-size: 2rem; opacity: 0.7;
+            animation: fall linear infinite, sway ease-in-out infinite alternate;
+        }
+        @keyframes fall { 100% { top: 110%; transform: rotate(360deg); } }
+        @keyframes sway { 0% { margin-left: 0px; } 100% { margin-left: 50px; } }
+
+        /* --- STAGE 1: LOCK SCREEN --- */
+        #lock-screen {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; transition: opacity 1s ease;
+            /* Opaque background to hide the book until unlocked */
+            background: url('https://www.transparenttextures.com/patterns/floral-texture.png'), linear-gradient(135deg, #fdf5f6 0%, #fbdada 100%);
+        }
+        .lock-icon { font-size: 4rem; margin-bottom: 10px; }
+        .lock-title { font-family: 'Cedarville Cursive', cursive; font-size: 2.5rem; }
+        .pin-dots { display: flex; gap: 12px; margin: 20px 0 30px 0; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--pink-text); }
+        .dot.filled { background-color: var(--pink-text); }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .key {
+            width: 60px; height: 60px; border-radius: 15px;
+            border: 1px solid rgba(90, 70, 76, 0.2); background: rgba(255, 255, 255, 0.6);
+            font-family: 'Playfair Display', serif; font-size: 1.5rem;
+            cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .key:active { background: rgba(255, 255, 255, 0.9); transform: scale(0.95); }
+
+        /* --- STAGE 2: LETTER SCREEN --- */
+        #letter-screen {
+            position: absolute; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 90; opacity: 0; transition: opacity 1s ease;
+            background: url('https://www.transparenttextures.com/patterns/floral-texture.png'), linear-gradient(135deg, #fdf5f6 0%, #fbdada 100%);
+        }
+        .letter-paper {
+            background: white; padding: 40px; max-width: 500px;
+            box-shadow: 0 10px 30px rgba(200, 150, 150, 0.2);
+            font-family: 'Special Elite', monospace; line-height: 1.8;
+            border: 1px solid var(--accent-pink); text-align: center;
+            margin-bottom: 30px; border-radius: 5px; color: #333;
+        }
+        .btn {
+            padding: 12px 30px; font-family: 'Playfair Display', serif;
+            background: var(--pink-text); color: white; border: none;
+            font-size: 1.2rem; cursor: pointer; border-radius: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: background 0.3s;
+        }
+        .btn:hover { background: #3a2b2f; }
+
+        /* --- STAGE 3: THE VINTAGE BOOK --- */
+        #book-screen {
+            position: absolute; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 80; opacity: 0; transition: opacity 1s ease;
+        }
+        
+        .book-wrapper {
+            position: relative; width: 90vw; max-width: 1000px;
+            height: 80vh; max-height: 650px; perspective: 2500px;
+            z-index: 10; display: flex; color: #111; font-family: 'Special Elite', monospace;
+        }
+
+        .book-half { width: 50%; height: 100%; position: relative; }
+
+        .page {
+            position: absolute; right: 0; width: 50%; height: 100%;
+            transform-origin: left center; transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transform-style: preserve-3d; cursor: pointer;
+            box-shadow: inset 4px 0 10px rgba(0,0,0,0.1), 5px 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .page-face {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            overflow: hidden; box-sizing: border-box; background-color: var(--paper-bg);
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+        }
+
+        .page-front { z-index: 2; }
+        .page-back { transform: rotateY(180deg); z-index: 1; box-shadow: inset -10px 0 20px rgba(0,0,0,0.15); }
+        .page.flipped { transform: rotateY(-180deg); }
+
+        /* Vintage Textures */
+        .bg-script { background-color: var(--purple-tint); opacity: 0.9; }
+        .bg-crumpled { background-color: #a8947b; background-image: url('https://www.transparenttextures.com/patterns/crumpled-paper.png'); }
+        .bg-collage { background-color: #c4b5a3; background-image: url('https://www.transparenttextures.com/patterns/stucco.png'); }
+
+        /* Vintage Photo Styling */
+        .v-photo {
+            position: absolute; background: white; padding: 4px;
+            border: 8px solid var(--photo-border); box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .v-photo img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.2) contrast(1.1); }
+        .v-photo::after {
+            content: attr(data-letter); position: absolute;
+            font-family: 'Arial', sans-serif; font-weight: bold; font-size: 3rem;
+            color: var(--photo-border); text-shadow: 2px 2px 0px rgba(255,255,255,0.7);
+            pointer-events: none;
+        }
+
+        /* Specific Page Elements */
+        .title-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.85); padding: 40px; border: 2px solid var(--vintage-dark);
+            text-align: center; width: 70%; box-shadow: 5px 5px 0px rgba(0,0,0,0.2);
+        }
+        .torn-paper {
+            position: absolute; left: 10%; top: 10%; width: 80%; height: 80%;
+            background: rgba(255,255,255,0.4); border: 1px dashed #666;
+            padding: 20px; font-size: 0.9rem; line-height: 1.5; box-sizing: border-box;
+        }
+        .vinyl-record {
+            position: absolute; top: 10%; right: 10%; width: 250px; height: 250px;
+            background: #111; border-radius: 50%; box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            border: 2px solid #333; background-image: repeating-radial-gradient(#111, #111 5px, #222 6px, #111 7px);
+        }
+        .vinyl-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80px; height: 80px; background: #8c3f3f; border-radius: 50%; border: 2px solid #fff;
+        }
+
+        .ephemera { position: absolute; font-size: 3rem; opacity: 0.8; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3)); }
+        .clip { font-size: 4rem; top: 5%; left: 40%; }
+        .bow { font-size: 3rem; top: 5%; left: 50%; transform: translateX(-50%); }
+
+        .book-controls { margin-top: 30px; display: flex; gap: 20px; z-index: 20; }
+        .book-controls button {
+            padding: 10px 25px; font-family: 'Special Elite', monospace;
+            background: #d9cec1; border: 2px solid var(--vintage-dark); color: #111;
+            cursor: pointer; font-size: 1.1rem; box-shadow: 3px 3px 0px var(--vintage-dark);
+            transition: transform 0.1s;
+        }
+        .book-controls button:active { transform: translate(3px, 3px); box-shadow: 0px 0px 0px var(--vintage-dark); }
+    </style>
+</head>
+<body>
+
+    <!-- FALLING FLOWERS (Runs continuously in the background) -->
+    <div id="flower-container"></div>
+
+    <!-- STAGE 1: LOCK SCREEN (Passcode 0606) -->
+    <div id="lock-screen">
+        <div class="lock-icon">🌸</div>
+        <div class="lock-title">From Someone</div>
+        <p style="font-family: 'Playfair Display'; font-style: italic;">For you</p>
+        
+        <div class="pin-dots">
+            <div class="dot" id="dot-1"></div>
+            <div class="dot" id="dot-2"></div>
+            <div class="dot" id="dot-3"></div>
+            <div class="dot" id="dot-4"></div>
+        </div>
+        
+        <div class="keypad" onclick="handleKeyPress(event)">
+            <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+            <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+            <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+            <div></div><button class="key">0</button><button class="key" id="clear">C</button>
+        </div>
+    </div>
+
+    <!-- STAGE 2: LETTER SCREEN -->
+    <div id="letter-screen">
+        <div class="letter-paper">
+            <h2 style="font-family: 'Cedarville Cursive'; margin-top: 0;">A Bouquet for you</h2>
+            <p>A preview letter for the little things I keep saving for you: the first light on the table, the song that found us again, the walk home when nothing needed to be said, and the quiet proof that love can live inside ordinary minutes.</p>
+            <p>I wanted this note to stretch and settle inside the card the way real words do.</p>
+        </div>
+        <button class="btn" onclick="openBook()">Open the Album</button>
+    </div>
+
+    <!-- STAGE 3: THE VINTAGE BOOK -->
+    <div id="book-screen">
+        <div class="book-wrapper" id="book">
+            
+            <!-- Left Cover (Static Backing) -->
+            <div class="book-half" style="background: #2a2a2a; border-radius: 10px 0 0 10px; box-shadow: inset -5px 0 15px rgba(0,0,0,0.5);"></div>
+
+            <!-- PAGE 1 -->
+            <div class="page" id="p1" style="z-index: 4;">
+                <div class="page-face page-front bg-script">
+                    <div class="title-box">
+                        <p style="font-size: 1.2rem; margin: 0;">- a love letter -</p>
+                        <h1 style="font-family: 'Playfair Display', serif; font-size: 3.5rem; font-style: italic; margin: 10px 0;">my dearest.</h1>
+                        <p style="font-family: 'Cedarville Cursive', cursive; font-size: 1.5rem; margin: 0;">yours forever. ♥</p>
+                    </div>
+                </div>
+                <div class="page-face page-back bg-collage">
+                    <div class="torn-paper">
+                        <div class="ephemera clip">📎</div>
+                        <strong>FROM:</strong> Me<br><br>
+                        <strong>FOR:</strong> You<br><br>
+                        <p>A preview letter for the little things I keep saving for you: the first light on the table, the song that found us again...</p>
+                    </div>
+                    <div class="v-photo" data-letter="B" style="width: 140px; height: 140px; bottom: 10%; left: 10%; transform: rotate(-5deg);">
+                        <img src="YOUR_PHOTO_URL_HERE" alt="Pic">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 2 -->
+            <div class="page" id="p2" style="z-index: 3;">
+                <div class="page-face page-front bg-collage">
+                    <div class="ephemera bow">🎀</div>
+                    <div class="v-photo" data-letter="A" style="width: 130px; height: 130px; top: 20%; left: 30%; transform: rotate(4deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="C" style="width: 110px; height: 110px; top: 45%; left: 50%; transform: rotate(-8deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="D" style="width: 120px; height: 120px; top: 35%; right: 10%; transform: rotate(6deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="E" style="width: 130px; height: 130px; bottom: 15%; left: 35%; transform: rotate(-3deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                </div>
+                <div class="page-face page-back bg-crumpled">
+                    <div class="v-photo" data-letter="A" style="width: 180px; height: 180px; top: 15%; left: 15%; transform: rotate(-4deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="B" style="width: 160px; height: 160px; bottom: 20%; right: 15%; transform: rotate(5deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                </div>
+            </div>
+
+            <!-- PAGE 3 -->
+            <div class="page" id="p3" style="z-index: 2;">
+                <div class="page-face page-front bg-script">
+                    <div class="vinyl-record"><div class="vinyl-center"></div></div>
+                    <div class="v-photo" data-letter="C" style="width: 140px; height: 140px; top: 30%; left: 15%; transform: rotate(-6deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="D" style="width: 150px; height: 150px; bottom: 15%; right: 25%; transform: rotate(4deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                </div>
+                <div class="page-face page-back bg-collage">
+                    <div class="v-photo" data-letter="E" style="width: 140px; height: 120px; top: 10%; left: 10%; transform: rotate(-3deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="F" style="width: 130px; height: 130px; top: 40%; right: 15%; transform: rotate(5deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="G" style="width: 150px; height: 110px; bottom: 10%; left: 20%; transform: rotate(-4deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                </div>
+            </div>
+
+            <!-- PAGE 4 -->
+            <div class="page" id="p4" style="z-index: 1;">
+                <div class="page-face page-front bg-crumpled">
+                    <h2 style="position: absolute; top: 5%; right: 10%; transform: rotate(5deg); font-family: 'Cedarville Cursive';">Te amo</h2>
+                    <div class="v-photo" data-letter="A" style="width: 120px; height: 120px; top: 15%; left: 15%; transform: rotate(-5deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="B" style="width: 130px; height: 120px; top: 10%; right: 20%; transform: rotate(6deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="C" style="width: 110px; height: 130px; top: 45%; left: 40%; transform: rotate(-2deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="D" style="width: 120px; height: 120px; bottom: 15%; left: 15%; transform: rotate(4deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                    <div class="v-photo" data-letter="E" style="width: 140px; height: 110px; bottom: 10%; right: 15%; transform: rotate(-6deg);"><img src="YOUR_PHOTO_URL_HERE" alt="Pic"></div>
+                </div>
+                <div class="page-face page-back bg-script">
+                    <div class="title-box" style="border: none; background: rgba(255,255,255,0.6);">
+                        <h1 style="font-family: 'Playfair Display', serif; font-size: 4rem; font-style: italic; margin: 0;">the end.</h1>
+                        <p style="font-size: 1.2rem;">until next time...</p>
+                        <p style="font-family: 'Cedarville Cursive', cursive; font-size: 1.5rem; margin-top: 20px;">love always,</p>
+                        <p style="font-size: 0.9rem;">p.s. i love you.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="book-controls">
+            <button onclick="turnPage('prev')">← Prev Page</button>
+            <button onclick="turnPage('next')">Next Page →</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. FALLING FLOWERS GENERATOR ---
+        const flowerContainer = document.getElementById('flower-container');
+        const flowers = ['🌸', '💮', '🌺'];
+        for (let i = 0; i < 25; i++) {
+            let flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.innerText = flowers[Math.floor(Math.random() * flowers.length)];
+            flower.style.left = Math.random() * 100 + 'vw';
+            flower.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+            flower.style.animationDuration = (Math.random() * 10 + 6) + 's, ' + (Math.random() * 3 + 2) + 's';
+            flower.style.animationDelay = (Math.random() * 5) + 's, 0s';
+            flowerContainer.appendChild(flower);
+        }
+
+        // --- 2. PASSCODE LOCK LOGIC (0606) ---
+        const correctPin = "0606";
+        let currentPin = "";
+        const dots = document.querySelectorAll('.dot');
+
+        function handleKeyPress(e) {
+            if (e.target.classList.contains('key')) {
+                const val = e.target.innerText;
+                if (val === 'C') { currentPin = ""; updateDots(); return; }
+                if (currentPin.length < 4 && val !== '') {
+                    currentPin += val; updateDots();
+                    if (currentPin.length === 4) setTimeout(checkPin, 300);
+                }
+            }
+        }
+
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) dot.classList.add('filled');
+                else dot.classList.remove('filled');
+            });
+        }
+
+        function checkPin() {
+            if (currentPin === correctPin) {
+                const lock = document.getElementById('lock-screen');
+                const letter = document.getElementById('letter-screen');
+                lock.style.opacity = '0';
+                setTimeout(() => {
+                    lock.style.display = 'none';
+                    letter.style.display = 'flex';
+                    setTimeout(() => letter.style.opacity = '1', 50);
+                }, 1000);
+            } else {
+                currentPin = ""; updateDots();
+                const pinContainer = document.querySelector('.pin-dots');
+                pinContainer.style.transform = 'translateX(10px)';
+                setTimeout(() => pinContainer.style.transform = 'translateX(-10px)', 100);
+                setTimeout(() => pinContainer.style.transform = 'translateX(10px)', 200);
+                setTimeout(() => pinContainer.style.transform = 'translateX(0)', 300);
+            }
+        }
+
+        // --- 3. TRANSITION TO VINTAGE BOOK ---
+        function openBook() {
+            const letter = document.getElementById('letter-screen');
+            const book = document.getElementById('book-screen');
+            letter.style.opacity = '0';
+            setTimeout(() => {
+                letter.style.display = 'none';
+                book.style.display = 'flex';
+                setTimeout(() => book.style.opacity = '1', 50);
+            }, 1000);
+        }
+
+        // --- 4. VINTAGE BOOK PAGE TURNING ---
+        let currentPage = 1;
+        const totalPages = document.querySelectorAll('.page').length;
+
+        function turnPage(direction) {
+            if (direction === 'next' && currentPage <= totalPages) {
+                const pageToFlip = document.getElementById('p' + currentPage);
+                pageToFlip.classList.add('flipped');
+                pageToFlip.style.zIndex = currentPage;
+                currentPage++;
+            } 
+            else if (direction === 'prev' && currentPage > 1) {
+                currentPage--;
+                const pageToUnflip = document.getElementById('p' + currentPage);
+                pageToUnflip.classList.remove('flipped');
+                // Allow stacking of up to 50 pages correctly on the right side
+                pageToUnflip.style.zIndex = (50 - currentPage); 
+            }
+        }
+    </script>
+</body>
+</html>
